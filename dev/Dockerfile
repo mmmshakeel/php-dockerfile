@@ -27,7 +27,6 @@ RUN \
         php7.2-soap \
         php7.2-imagick \
         php7.2-imap \
-        php7.2-mcrypt \
         php7.2-xmlrpc \
         php7.2-mysqlnd \
         php7.2-mbstring \
@@ -42,6 +41,28 @@ RUN \
         fontconfig \
         xfonts-75dpi \
         xfonts-base
+
+# Install xdebug
+RUN wget http://xdebug.org/files/xdebug-2.6.1.tgz && \
+    tar -xvzf xdebug-2.6.1.tgz && \
+    cd xdebug-2.6.1 && \
+    phpize && \
+    ./configure && \
+    make && \
+    cp modules/xdebug.so /usr/lib/php/20170718
+
+RUN export XDEBUG_CONFIG="idekey=PHPSTORM" && \
+    export PHP_IDE_CONFIG="serverName=docker-server"
+
+RUN mkdir -p /run/php
+
+RUN  curl -o /tmp/composer-setup.php https://getcomposer.org/installer \
+    && php /tmp/composer-setup.php --install-dir=bin --filename=composer \
+    && rm /tmp/composer-setup.php
+
+COPY php.ini /etc/php/7.2/fpm/php.ini
+COPY www.conf /etc/php/7.2/fpm/pool.d/www.conf
+COPY php_cli.ini /etc/php/7.2/cli/php.ini
 
 EXPOSE 9000
 CMD ["/usr/sbin/php-fpm7.2", "-F", "-R"]
